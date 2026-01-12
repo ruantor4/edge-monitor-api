@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+core/migrations
 
 # Migrations (se quiser ignorar arquivos de migração gerados)
 # estoque/migrations/
