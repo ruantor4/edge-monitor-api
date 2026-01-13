@@ -36,3 +36,48 @@ class UserCreateSerializer(serializers.ModelSerializer):
             password = validated_data["password"]
         )
         return user
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável pela atualização de dados do usuário.
+
+    Permite a atualização parcial dos campos, incluindo alteração
+    opcional de senha. Caso a senha seja enviada, ela é corretamente
+    convertida para hash antes de ser persistida.
+
+    Campos aceitos:
+        - username (opcional)
+        - email (opcional)
+        - password (opcional)
+    """
+    
+    password = serializers.CharField(
+        write_only=True,
+        required=False
+    )
+    class Meta:
+        model = User
+        fields = ["username", "email", "password"]
+        
+    def update(self, instance, validated_data):
+        """
+        Atualiza e retorna a instância do usuário.
+
+        Args:
+            instance (User): Usuário a ser atualizado.
+            validated_data (dict): Dados validados da requisição.
+
+        Returns:
+            User: Instância do usuário atualizada.
+        """
+        password = validated_data.pop("password", None)
+        
+        # Atualiza campos simples
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+            
+        if password:
+            instance.set_password(password)
+            
+        instance.save()
+        return instance
