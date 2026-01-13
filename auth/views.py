@@ -58,3 +58,60 @@ class LoginView(APIView):
             },
             status=status.HTTP_200_OK
         )
+        
+class RefreshTokenView(APIView):
+    """
+    View responsável por renovar o access token a partir do refresh token.
+
+    Endpoint:
+        POST /api/auth/refresh/
+    """
+    def post(self, request: Request) -> Response:
+        refresh_token = request.data.get("refresh")
+        
+        try:
+            refresh = RefreshToken(refresh_token)
+            
+            return Response(
+                {
+                    "access": str(refresh.access_token)
+                },
+                status=status.HTTP_200_OK
+           )
+        except Exception:
+            return Response(
+                {"detail": "Refresh token inválido"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+            
+class LogoutView(APIView):
+    """
+    View responsável por realizar logout do usuário.
+
+    Endpoint:
+        POST /api/auth/logout/
+    """
+    def post(self, request: Request) -> Response:
+        refresh_token = request.data.get("refresh")
+        
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            
+            report_log(
+                user=request.user if request.user.is_authenticated else None,
+                action="Logout",
+                status="SUCCESS",
+                message="Logout realizado com sucesso"
+            )
+            return Response(
+                {"detail": "Logout realizado com sucesso"},
+                status=status.HTTP_200_OK    
+            )
+        
+        except Exception:
+            return Response(
+                {"detail": "Token inválido"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
