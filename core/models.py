@@ -38,7 +38,7 @@ class LogSystem(models.Model):
     message = models.TextField(
         verbose_name = "Mensagem"
     )
-    
+     
     def __str__(self) -> str:
         """
         Retorna uma representação legível do registro de log,
