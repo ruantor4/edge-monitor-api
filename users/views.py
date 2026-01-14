@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from core.utils import report_log
 from .serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
@@ -19,6 +20,7 @@ class UserListView(APIView):
     Endpoint:
         GET /api/user/
     """
+    permission_classes = [IsAuthenticated]
     
     def get(self, request: Request) -> Response:
         """
@@ -68,7 +70,10 @@ class UserCreateView(APIView):
 
     Saída:
         Dados do usuário criado (sem senha).
+    
+    Criação de usuário NÃO exige autenticação.
     """
+    
     def post(self, request: Request) -> Response:
         """
         Cria um novo usuário no sistema.
@@ -133,6 +138,8 @@ class UserDetailView(APIView):
     Endpoint:
         GET /api/user/{id}/
     """
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request: Request, pk: int) -> Response:
         """
         Retorna os dados do usuário identificado pelo ID informado.
@@ -179,6 +186,8 @@ class UserUpdateView(APIView):
     Endpoint:
         PUT /api/user/{id}/update/
     """
+    permission_classes = [IsAuthenticated]
+    
     def put(self, request: Request, pk:int) -> Response:
         """
         Atualiza os dados do usuário identificado pelo ID informado.
@@ -239,6 +248,8 @@ class UserDeleteView(APIView):
     Endpoint:
         DELETE /api/user/{id}/delete/
     """
+    permission_classes = [IsAuthenticated]
+    
     def delete(self, request: Request, pk:int) -> Response:
         """
         Exclui o usuário identificado pelo ID informado.
