@@ -10,7 +10,6 @@ class MonitoringEventSerializer(serializers.ModelSerializer):
     Este serializer recebe dados estruturados via multipart/form-data,
     incluindo campos textuais e um arquivo de imagem de evidência.
     """
-    
     class Meta:
         model = MonitoringEvent
         fields = [
@@ -20,8 +19,8 @@ class MonitoringEventSerializer(serializers.ModelSerializer):
             "evidence",
         ]
         
-def validate_mac_address(self, value: str) -> str:
-    """
+    def validate_mac_address(self, value: str) -> str:
+        """
         Valida o formato do endereço MAC lógico do dispositivo edge.
 
         Args:
@@ -29,10 +28,10 @@ def validate_mac_address(self, value: str) -> str:
 
         Returns:
             str: MAC validado.
-    """
-    if len(value) != 17:
-        raise serializers.ValidationError(
-            "MAC address inválido. Formato esperado XX:XX:XX:XX:XX:XX"
-        )
-    return value.upper()
+        """
+        if len(value) != 17:
+            raise serializers.ValidationError(
+                "MAC address inválido. Formato esperado XX:XX:XX:XX:XX:XX"
+            )
+        return value.upper()
     

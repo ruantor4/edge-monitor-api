@@ -1,10 +1,10 @@
 from django.urls import path
 
-from auth.views import LoginView, LogoutView, RefreshTokenView
+from auth.views import LoginView, LogoutView, RenovateTokenView
 
 
 urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
-    path("refresh/", RefreshTokenView.as_view(), name="token-refresh"),
+    path("renovate/", RenovateTokenView.as_view(), name="token-renovate"),
     path("logout/", LogoutView.as_view(), name="logout")
 ]

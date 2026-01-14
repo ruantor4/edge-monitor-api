@@ -23,7 +23,7 @@ from project import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include("users.urls")),
-    path("api/auth/", include("auth.urls")),
+    path("api/authentication/", include("auth.urls")),
     path("api/monitoring/", include("monitoring.urls"))
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

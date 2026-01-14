@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -15,7 +14,7 @@ class LoginView(APIView):
     View responsável pela autenticação de usuários via JWT.
 
     Endpoint:
-        POST /api/auth/login/
+        POST /api/authentication/login/
     """    
     def post(self, request: Request) -> Response:
         """
@@ -42,7 +41,7 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
             
-        refresh = RefreshToken.for_user(user)
+        renovate = RefreshToken.for_user(user)
         
         report_log(
             user=user,
@@ -53,34 +52,34 @@ class LoginView(APIView):
         
         return Response(
             {
-                "access": str(refresh.access_token),
-                "refresh": str(refresh)
+                "access": str(renovate.access_token),
+                "renovate": str(renovate)
             },
             status=status.HTTP_200_OK
         )
         
-class RefreshTokenView(APIView):
+class RenovateTokenView(APIView):
     """
-    View responsável por renovar o access token a partir do refresh token.
+    View responsável por renovar o access token a partir do renovate token.
 
     Endpoint:
-        POST /api/auth/refresh/
+        POST /api/authentication/renovate/
     """
     def post(self, request: Request) -> Response:
-        refresh_token = request.data.get("refresh")
+        renovate_token = request.data.get("renovate")
         
         try:
-            refresh = RefreshToken(refresh_token)
+            renovate = RefreshToken(renovate_token)
             
             return Response(
                 {
-                    "access": str(refresh.access_token)
+                    "access": str(renovate.access_token)
                 },
                 status=status.HTTP_200_OK
            )
         except Exception:
             return Response(
-                {"detail": "Refresh token inválido"},
+                {"detail": "renovate token inválido"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
             
@@ -89,13 +88,13 @@ class LogoutView(APIView):
     View responsável por realizar logout do usuário.
 
     Endpoint:
-        POST /api/auth/logout/
+        POST /api/authentication/logout/
     """
     def post(self, request: Request) -> Response:
-        refresh_token = request.data.get("refresh")
+        renovate_token = request.data.get("renovate")
         
         try:
-            token = RefreshToken(refresh_token)
+            token = RefreshToken(renovate_token)
             token.blacklist()
             
             report_log(

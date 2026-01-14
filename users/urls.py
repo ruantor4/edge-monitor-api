@@ -8,18 +8,18 @@ urlpatterns = [
     path("user/", UserListView.as_view(), name="user-list"),
     
     # CRIAR usuário
-    # POST /api/user/create/
-    path("user/create/", UserCreateView.as_view(), name="user-create"),
+    # POST /api/user/
+    path("user/", UserCreateView.as_view(), name="user-create"),
     
     # CONSULTAR usuário por ID
     # GET /api/user/{id}/
     path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     
     # ATUALIZAR usuário
-    # PUT /api/user/{id}/update/
-    path("user/<int:pk>/update", UserUpdateView.as_view(), name="user-update"),
+    # PUT /api/user/{id}/
+    path("user/<int:pk>/", UserUpdateView.as_view(), name="user-update"),
     
     # EXCLUIR usuário
-    # DELETE /api/user/{id}/delete/
-    path("user/<int:pk>/delete", UserDeleteView.as_view(), name="user-delete"),
+    # DELETE /api/user/{id}/
+    path("user/<int:pk>/", UserDeleteView.as_view(), name="user-delete"),
 ]
