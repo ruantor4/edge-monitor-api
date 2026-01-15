@@ -14,6 +14,12 @@ class DashboardEventSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(source="evidence")
     
     class Meta:
+        """
+        Metadados do serializer DashboardEventSerializer.
+
+        Define o modelo de origem e os campos expostos no payload
+        final consumido pelo dashboard.
+        """
         model = MonitoringEvent
         fields = [
             "mac",

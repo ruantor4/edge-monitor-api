@@ -15,10 +15,13 @@ from .serializers import DashboardEventSerializer
 
 class DashboardView(APIView):
     """
-    View responsável por fornecer dados para o dashboard.
+    View responsável por fornecer dados consolidados para o dashboard.
 
-    Endpoint:
-        GET /api/dashboard?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+    Esta view expõe eventos de monitoramento filtrados por um intervalo
+    de datas, sendo utilizada exclusivamente para consulta e visualização
+    de informações agregadas.
+
+    O acesso é restrito a usuários autenticados.
     """
     permission_classes = [IsAuthenticated]
     
@@ -43,14 +46,22 @@ class DashboardView(APIView):
         """
         Retorna eventos de monitoramento filtrados por intervalo de datas.
 
-        Query params:
+        Responsabilidades:
+        - Validar parâmetros de data informados na querystring
+        - Converter datas para objetos datetime
+        - Filtrar eventos no intervalo informado
+        - Serializar os dados no formato esperado pelo dashboard
+        - Registrar a operação em log
+
+        Query params esperados:
             - start_date (YYYY-MM-DD)
             - end_date (YYYY-MM-DD)
 
-        Returns:
-            Response:
-                - 200 OK: Lista de eventos
-                - 400 Bad Request: Parâmetros inválidos
+        Returns
+        -------
+        Response
+            - 200 OK: Lista de eventos de monitoramento
+            - 400 Bad Request: Parâmetros ausentes ou inválidos
         """
         start_date = request.query_params.get("start_date")
         end_date = request.query_params.get("end_date")
