@@ -2,13 +2,13 @@ from django.db import models
 
 class MonitoringEvent(models.Model):
     """
-    Model responsável por representar um evento de detecção
-    de objeto de risco enviado por um dispositivo edge.
+    Model responsável por representar um evento de monitoramento
+    gerado por um dispositivo edge.
 
-    Cada registro corresponde a uma ocorrência detectada
-    pelo sistema edge-risk-monitor, contendo informações
-    suficientes para auditoria, rastreabilidade e análise
-    posterior em dashboards.
+    Cada instância deste model corresponde a uma ocorrência de
+    detecção de objeto de risco, contendo informações essenciais
+    para auditoria, rastreabilidade e posterior análise em
+    dashboards e relatórios.
     """
     mac_address = models.CharField(
         max_length=17,
@@ -41,12 +41,25 @@ class MonitoringEvent(models.Model):
     
     def __str__(self) -> str:
         """
-        Retorna uma representação legível do evento,
-        útil para logs e administração.
+        Retorna uma representação legível do evento.
+
+        Utilizada para exibição em interfaces administrativas
+        e para facilitar leitura em logs e depuração.
+
+        Returns
+        -------
+        str
+            Representação textual do evento.
         """
         return f"{self.mac_address} | {self.detected_class} | {self.detected_at}"
     
     class Meta:
+        """
+        Metadados do model MonitoringEvent.
+
+        Define nomes legíveis para a interface administrativa
+        e a ordenação padrão dos registros (mais recentes primeiro).
+        """
         verbose_name = "Evento de Monitoramento"
         verbose_name_plural = "Eventos de Monitoramento"
         ordering = ["-detected_at"]
