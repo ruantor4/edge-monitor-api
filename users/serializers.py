@@ -3,32 +3,63 @@ from rest_framework import serializers
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Serializer de saída do usuário (NUNCA expõe senha).
+    Serializer de saída do usuário.
+
+    Utilizado exclusivamente para leitura e resposta da API,
+    garantindo que informações sensíveis, como a senha, nunca
+    sejam expostas.
     """
     class Meta:
+        """
+        Metadados do serializer UserSerializer.
+
+        Define os campos públicos retornados nas respostas
+        relacionadas a usuários.
+        """
         model = User
         fields = ["id", "username", "email"]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
     """
-    Serializer responsável pela criação de usuários.
+    Serializer responsável pela criação de novos usuários.
 
-    Campos:
+    Este serializer utiliza o método apropriado do Django
+    para criação de usuários, garantindo que a senha seja
+    corretamente armazenada utilizando hash.
+
+    Campos esperados:
         - username
         - email
         - password
     """
+    
     password = serializers.CharField(write_only=True)
     
     class Meta:
+        """
+        Metadados do serializer UserCreateSerializer.
+        """
         model = User
         fields = ["username", "email", "password"]
         
     def create(self, validated_data):
         """
-        Cria um usuário utilizando o método correto do Django,
-        garantindo que a senha seja armazenada com hash.
+        Cria e retorna uma nova instância de usuário.
+
+        Este método garante o uso de `create_user`, assegurando
+        que a senha seja tratada corretamente pelo sistema
+        de autenticação do Django.
+
+        Parameters
+        ----------
+        validated_data : dict
+            Dados validados da requisição.
+
+        Returns
+        -------
+        User
+            Instância do usuário criado.
         """
         user = User.objects.create_user(
             username= validated_data["username"],
@@ -41,9 +72,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer responsável pela atualização de dados do usuário.
 
-    Permite a atualização parcial dos campos, incluindo alteração
-    opcional de senha. Caso a senha seja enviada, ela é corretamente
-    convertida para hash antes de ser persistida.
+    Permite atualização parcial dos campos do usuário, incluindo
+    alteração opcional de senha. Caso a senha seja fornecida, ela
+    é corretamente convertida para hash antes de ser persistida.
 
     Campos aceitos:
         - username (opcional)
@@ -56,6 +87,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         required=False
     )
     class Meta:
+        """
+        Metadados do serializer UserUpdateSerializer.
+        """
         model = User
         fields = ["username", "email", "password"]
         
@@ -63,19 +97,30 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         """
         Atualiza e retorna a instância do usuário.
 
-        Args:
-            instance (User): Usuário a ser atualizado.
-            validated_data (dict): Dados validados da requisição.
+        Responsabilidades:
+        - Atualizar campos simples do usuário
+        - Tratar corretamente a alteração de senha
+        - Persistir as alterações no banco de dados
 
-        Returns:
-            User: Instância do usuário atualizada.
+        Parameters
+        ----------
+        instance : User
+            Instância do usuário a ser atualizada.
+        validated_data : dict
+            Dados validados da requisição.
+
+        Returns
+        -------
+        User
+            Instância do usuário atualizada.
         """
         password = validated_data.pop("password", None)
         
         # Atualiza campos simples
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-            
+        
+        # Atualiza a senha, se informada   
         if password:
             instance.set_password(password)
             

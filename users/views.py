@@ -19,8 +19,10 @@ from .serializers import (
 
 class UserView(APIView):
     """
-    View responsável por manipular o recurso USUÁRIO conforme o padrão REST
-    
+    View responsável por manipular o recurso USUÁRIO conforme o padrão REST.
+
+    Esta view trata operações sobre a coleção de usuários,
+    permitindo listagem e criação de novos registros.
 
     Endpoints atendidos:
         - GET  /api/user/   → Listar usuários
@@ -35,12 +37,16 @@ class UserView(APIView):
         """
         Lista todos os usuários cadastrados no sistema.
 
-        Endpoint:
-            GET /api/user/
+        Responsabilidades:
+        - Recuperar usuários persistidos
+        - Serializar os dados para resposta
+        - Registrar a operação em log
 
-        Returns:
+        Returns
+        -------
+        Response
             - 200 OK: Lista de usuários
-            - 500 Internal Server Error
+            - 500 Internal Server Error: Erro inesperado
         """
         try:
             users = User.objects.all().order_by("id")
@@ -77,17 +83,17 @@ class UserView(APIView):
         """
         Cria um novo usuário no sistema.
 
-        Endpoint:
-            POST /api/user/
+        Responsabilidades:
+        - Validar dados de entrada
+        - Criar usuário utilizando serializer dedicado
+        - Registrar operação em log
 
-        Body:
-            - username
-            - email
-            - password
-
-        Returns:
-            - 201 Created: Usuário criado
+        Returns
+        -------
+        Response
+            - 201 Created: Usuário criado com sucesso
             - 400 Bad Request: Dados inválidos
+            - 500 Internal Server Error: Erro inesperado
         """
         try:
             serializer = UserCreateSerializer(data=request.data)
@@ -130,12 +136,9 @@ class UserDetailView(APIView):
     """
     View responsável por manipular um usuário específico.
 
-    🔴 ALTERAÇÃO ESTRUTURAL:
-    -----------------------
-    Esta classe UNIFICA:
-        - UserDetailView (GET)
-        - UserUpdateView (PUT)
-        - UserDeleteView (DELETE)
+    Esta classe centraliza operações de consulta, atualização
+    e exclusão de usuários, mantendo todas as ações relacionadas
+    a um único recurso sob o mesmo endpoint.
 
     Endpoint base:
         /api/user/{id}/
@@ -149,14 +152,16 @@ class UserDetailView(APIView):
         """
         Retorna os dados do usuário identificado pelo ID informado.
 
-        Args:
-            request (Request): Requisição HTTP.
-            pk (int): Identificador do usuário.
+        Responsabilidades:
+        - Recuperar o usuário pelo identificador
+        - Serializar os dados para resposta
+        - Registrar a operação em log
 
-        Returns:
-            Response:
-                - 200 OK: Dados do usuário
-                - 404 Not Found: Usuário não encontrado
+        Returns
+        -------
+        Response
+            - 200 OK: Dados do usuário
+            - 404 Not Found: Usuário não encontrado
         """
         try:
             user = get_object_or_404(User, pk=pk)
@@ -193,8 +198,16 @@ class UserDetailView(APIView):
         """
         Atualiza os dados de um usuário existente.
 
-        Endpoint:
-            PUT /api/user/{id}/
+        Responsabilidades:
+        - Validar dados recebidos
+        - Atualizar campos permitidos
+        - Registrar operação em log
+
+        Returns
+        -------
+        Response
+            - 200 OK: Usuário atualizado
+            - 400 Bad Request: Dados inválidos
         """
         try:
             user = get_object_or_404(User, pk=pk)
@@ -239,8 +252,17 @@ class UserDetailView(APIView):
         """
         Exclui um usuário do sistema.
 
-        Endpoint:
-            DELETE /api/user/{id}/
+        Responsabilidades:
+        - Remover o usuário identificado
+        - Tratar vínculos e restrições de integridade
+        - Registrar operação em log
+
+        Returns
+        -------
+        Response
+            - 204 No Content: Usuário excluído
+            - 409 Conflict: Usuário possui vínculos
+            - 500 Internal Server Error: Erro inesperado
         """
         user = get_object_or_404(User, pk=pk)
         

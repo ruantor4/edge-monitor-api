@@ -1,5 +1,10 @@
+"""
+Rotas responsáveis pelo gerenciamento de usuários do sistema.
+Este módulo define endpoints para criação, listagem,
+consulta, atualização e exclusão de usuários, delegando
+toda a lógica de negócio para as respectivas views.
+"""
 from django.urls import path
-
 from users.views import UserDetailView,UserView
 
 urlpatterns = [
