@@ -24,16 +24,21 @@ from core.utils import report_log
 )
 class LoginView(APIView):
     """
-    View responsável pela autenticação de usuários via JWT.
+    View responsável pela autenticação de usuários utilizando JWT.
 
-    Endpoint:
-        POST /api/authentication/login/
-    """    
+    Esta view recebe credenciais válidas e retorna um par de tokens
+    (access e renovate), delegando a autenticação ao backend do Django.
+    """  
     def post(self, request: Request) -> Response:
         """
-        Autentica o usuário e retorna tokens JWT.
+        Processa a autenticação do usuário.
 
-        Body esperado (JSON):
+        Responsabilidades:
+        - Validar credenciais informadas
+        - Gerar tokens JWT em caso de sucesso
+        - Registrar logs de sucesso ou falha
+
+        Espera no corpo da requisição:
             - username
             - password
         """
@@ -84,12 +89,17 @@ class LoginView(APIView):
 )         
 class RenovateTokenView(APIView):
     """
-    View responsável por renovar o access token a partir do renovate token.
-
-    Endpoint:
-        POST /api/authentication/renovate/
+    View responsável por gerar um novo access token a partir
+    de um renovate token válido.
     """
     def post(self, request: Request) -> Response:
+        """
+        Realiza a renovação do access token.
+
+        Responsabilidades:
+        - Validar o renovate token recebido
+        - Gerar um novo access token
+        """
         renovate_token = request.data.get("renovate")
         
         try:
@@ -120,12 +130,19 @@ class RenovateTokenView(APIView):
 )            
 class LogoutView(APIView):
     """
-    View responsável por realizar logout do usuário.
+    View responsável por realizar o logout do usuário.
 
-    Endpoint:
-        POST /api/authentication/logout/
+    Executa a invalidação do renovate token informado,
+    impedindo novas renovações de access token.
     """
     def post(self, request: Request) -> Response:
+        """
+        Processa o logout do usuário.
+
+        Responsabilidades:
+        - Invalidar o renovate token recebido
+        - Registrar o evento de logout em log
+        """
         renovate_token = request.data.get("renovate")
         
         try:

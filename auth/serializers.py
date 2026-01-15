@@ -3,16 +3,16 @@ from rest_framework import serializers
 
 class LoginSerializer(serializers.Serializer):
     """
-    Serializer responsável por representar o payload de autenticação
-    de usuários no sistema.
+    Serializer utilizado para validação do payload de login.
 
-    Este serializer **não está associado a nenhum model** e existe
-    exclusivamente para:
-        - Validação básica do corpo da requisição de login
-        - Documentação do endpoint no Swagger / OpenAPI
+    Esta classe não possui vínculo com models e tem como objetivo
+    apenas definir e validar os campos esperados na requisição
+    de autenticação de usuários.
 
-    Ele define explicitamente os campos esperados no corpo da
-    requisição de autenticação.
+    Responsabilidades:
+    - Declarar os campos obrigatórios para login
+    - Garantir tipagem e presença dos dados
+    - Servir como contrato explícito para a camada de view
     """
 
     username = serializers.CharField(
@@ -26,7 +26,12 @@ class LoginSerializer(serializers.Serializer):
     
 class RenovateTokenSerializer(serializers.Serializer):
     """
-    Payload para renovação do access token.
+    Serializer responsável por validar o payload de renovação de token.
+
+    Utilizado para garantir a presença do refresh token necessário
+    para geração de um novo access token.
+
+    Não executa lógica de renovação, apenas valida o formato dos dados.
     """
     renovate = serializers.CharField(
         help_text="Refresh token utilizado para gerar um novo access token"
@@ -34,7 +39,12 @@ class RenovateTokenSerializer(serializers.Serializer):
     
 class LogoutSerializer(serializers.Serializer):
     """
-    Payload para logout do usuário.
+    Serializer responsável por validar o payload de logout.
+
+    Utilizado para garantir que o refresh token a ser invalidado
+    seja corretamente informado na requisição.
+
+    Não executa lógica de logout, apenas valida o formato dos dados.
     """
     renovate = serializers.CharField(
         help_text="Refresh token a ser invalidado"
