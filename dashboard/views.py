@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import OpenApiParameter
+from drf_spectacular.utils import extend_schema
 
 from core.utils import report_log
 from monitoring.models import MonitoringEvent
@@ -20,6 +22,23 @@ class DashboardView(APIView):
     """
     permission_classes = [IsAuthenticated]
     
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="start_date",
+            description="Data inicial (YYYY-MM-DD)",
+            required=True,
+            type=str,
+        ),
+        OpenApiParameter(
+            name="end_date",
+            description="Data final (YYYY-MM-DD)",
+            required=True,
+            type=str,
+        ),
+    ],
+    responses=DashboardEventSerializer(many=True),
+    )
     def get(self, request: Request) -> Response:
         """
         Retorna eventos de monitoramento filtrados por intervalo de datas.
@@ -45,7 +64,6 @@ class DashboardView(APIView):
         try:
             start_date = datetime.strptime(start_date, "%Y-%m-%d")
             end_date = datetime.strptime(end_date, "%Y-%m-%d")
-            
             end_date = end_date.replace(hour=23, minute=59, second=59)
         
         except ValueError:
@@ -53,6 +71,7 @@ class DashboardView(APIView):
                 {"detail": "Formato de data inválido. Use YYYY-MM-DD"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         events = MonitoringEvent.objects.filter(
             detected_at__range=(start_date, end_date)
         ).order_by("-detected_at")

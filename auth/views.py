@@ -5,10 +5,23 @@ from rest_framework import status
 
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from drf_spectacular.utils import extend_schema
+from .serializers import LoginSerializer, LogoutSerializer, RenovateTokenSerializer
 
 from core.utils import report_log
  
-
+@extend_schema(
+    request=LoginSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "access": {"type": "string"},
+                "renovate": {"type": "string"},
+            },
+        }
+    },
+)
 class LoginView(APIView):
     """
     View responsável pela autenticação de usuários via JWT.
@@ -57,7 +70,18 @@ class LoginView(APIView):
             },
             status=status.HTTP_200_OK
         )
-        
+
+@extend_schema(
+    request=RenovateTokenSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "access": {"type": "string"},
+            },
+        }
+    },
+)         
 class RenovateTokenView(APIView):
     """
     View responsável por renovar o access token a partir do renovate token.
@@ -82,7 +106,18 @@ class RenovateTokenView(APIView):
                 {"detail": "renovate token inválido"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-            
+
+@extend_schema(
+    request=LogoutSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "detail": {"type": "string"},
+            },
+        }
+    },
+)            
 class LogoutView(APIView):
     """
     View responsável por realizar logout do usuário.
