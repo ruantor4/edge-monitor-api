@@ -4,12 +4,15 @@ from django.conf import settings
 
 class LogSystem(models.Model):
     """
-    Model responsável por armazenar registros de operações realizadas no sistema.
+    Model responsável por armazenar registros de eventos e operações
+    executadas no sistema.
 
-    Este modelo é utilizado para persistir logs de auditoria e rastreabilidade,
-    registrando ações executadas por usuários autenticados ou eventos gerados
-    pelo próprio sistema. Os registros aqui armazenados não devem ser removidos
-    automaticamente, garantindo histórico completo para análise e depuração.
+    Este modelo é utilizado para persistência de logs de auditoria,
+    rastreabilidade e depuração, registrando ações realizadas por
+    usuários autenticados ou por processos internos do sistema.
+
+    Os registros aqui armazenados não devem ser removidos automaticamente,
+    garantindo histórico completo para análise posterior.
     """
     
     user = models.ForeignKey(
@@ -41,13 +44,16 @@ class LogSystem(models.Model):
      
     def __str__(self) -> str:
         """
-        Retorna uma representação legível do registro de log,
-        combinando data/hora, usuário (quando existir) e ação registrada.
+        Retorna uma representação legível do registro de log.
+
+        A representação combina a data/hora do evento, o usuário
+        associado (quando existir) e a ação registrada, sendo útil
+        para exibição em interfaces administrativas e logs.
 
         Returns
         -------
         str
-            String representativa do log para exibição administrativa.
+            String representativa do registro de log.
         """
         user = self.user.username if self.user else "Anônimo"
         return f"{self.timestamp} - {user} - {self.action}"
@@ -56,8 +62,10 @@ class LogSystem(models.Model):
         """
         Metadados do model LogSystem.
 
-        Define o nome da tabela no banco de dados, a ordenação padrão
-        dos registros e os nomes legíveis utilizados na interface administrativa.
+        Define:
+        - Nome explícito da tabela no banco de dados
+        - Ordenação padrão dos registros (mais recentes primeiro)
+        - Nomes legíveis para exibição administrativa
         """
         db_table = "log_system"
         ordering = ["-timestamp"]
