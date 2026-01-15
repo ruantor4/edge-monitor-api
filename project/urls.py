@@ -1,4 +1,12 @@
 
+"""
+Arquivo central de roteamento da aplicação.
+Este módulo define:
+- Rotas administrativas
+- Exposição do schema OpenAPI
+- Interface Swagger
+- Inclusão das rotas dos módulos da aplicação
+"""
 from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls.static import static
@@ -42,8 +50,10 @@ urlpatterns = [
     # GET /api/dashboard/?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
     path("api/dashboard/", include("dashboard.urls"))
 
-] 
+]
 
+# ARQUIVOS DE MÍDIA (AMBIENTE DE DESENVOLVIMENTO)
+# Exposição de arquivos enviados
 urlpatterns += static(
     settings.MEDIA_URL, 
     document_root=settings.MEDIA_ROOT)
