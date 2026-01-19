@@ -87,7 +87,11 @@ class DashboardView(APIView):
             detected_at__range=(start_date, end_date)
         ).order_by("-detected_at")
         
-        serializer = DashboardEventSerializer(events, many=True)
+        serializer = DashboardEventSerializer(
+            events,
+            many=True,
+            context={"request": request}
+        )
         
         report_log(
             user=request.user if request.user.is_authenticated else None,

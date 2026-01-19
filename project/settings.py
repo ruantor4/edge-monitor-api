@@ -59,6 +59,9 @@ INSTALLED_APPS = [
     'users',
     'monitoring',
     'dashboard',
+    
+    #CORS
+    'corsheaders',
 ]
 
 
@@ -66,6 +69,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,6 +78,17 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+# PERMISSÃO DE CORS
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://0.0.0.0:5500",
+]
+
+# PERMISSÃO PARA TODOS (DESENVOLVIMENTO)
+CORS_ALLOW_CREDENTIALS = True
 
 # CONFIGURAÇÕES DE URL E TEMPLATES
 

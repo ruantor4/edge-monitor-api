@@ -10,6 +10,7 @@ from drf_spectacular.utils import extend_schema
 
 from core.utils import report_log
 from .serializers import MonitoringEventSerializer
+from .models import MonitoringEvent
 
 class MonitoringCreateView(APIView):
     """
@@ -22,6 +23,22 @@ class MonitoringCreateView(APIView):
     
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
+    
+    @extend_schema(
+        responses={200: MonitoringEventSerializer(many=True)},
+        description="Lista eventos de monitoramento registrados."
+    )
+    def get(self, request: Request) -> Response:
+        """
+        Retorna a lista de eventos de monitoramento registrados.
+
+        Utilizado pelo dashboard para visualização dos eventos.
+        """
+        events = MonitoringEvent.objects.all().order_by("-detected_at")
+        serializer = MonitoringEventSerializer(events, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
     @extend_schema(
         request=MonitoringEventSerializer,
