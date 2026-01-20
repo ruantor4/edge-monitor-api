@@ -80,7 +80,9 @@ class LoginView(APIView):
         return Response(
             {
                 "access": str(renovate.access_token),
-                "renovate": str(renovate)
+                "renovate": str(renovate),
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
             },
             status=status.HTTP_200_OK
         )

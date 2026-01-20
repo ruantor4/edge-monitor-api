@@ -95,12 +95,25 @@ class UserView(APIView):
             - 400 Bad Request: Dados inválidos
             - 500 Internal Server Error: Erro inesperado
         """
-        if not request.user.is_staff:
+        actor = request.user
+        
+        # User comum não cria ninguém
+        if not actor.is_staff:
             return Response(
                 {"detail": "Você não tem permissão para criar usuários"},
                 status=status.HTTP_403_FORBIDDEN
             )
             
+        # Admin NÃO pode criar root
+        if (
+            actor.is_staff
+            and not actor.is_superuser
+            and request.data.get("is_superuser") is True
+        ):
+            return Response(
+                {"detail": "Administrador não pode criar usuário root"},
+                status=status.HTTP_403_FORBIDDEN
+            )
         try:
             serializer = UserCreateSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -215,18 +228,22 @@ class UserDetailView(APIView):
             - 200 OK: Usuário atualizado
             - 400 Bad Request: Dados inválidos
         """
-        target = get_object_or_404(User, pk=pk)
         actor = request.user
+        target = get_object_or_404(User, pk=pk)
 
-        # Root nunca pode ser editado
-        if target.is_superuser:
+        # Apenas root pode editar root
+        if target.is_superuser and not actor.is_superuser:
             return Response(
-                {"detail": "Usuário root não pode ser editado"},
+                {"detail": "Apenas o root pode editar este usuário"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
         # Admin não edita admin
-        if actor.is_staff and target.is_staff:
+        if (
+            actor.is_staff
+            and not actor.is_superuser
+            and target.is_staff
+        ):
             return Response(
                 {"detail": "Administrador não pode editar outro administrador"},
                 status=status.HTTP_403_FORBIDDEN
@@ -304,15 +321,19 @@ class UserDetailView(APIView):
         target = get_object_or_404(User, pk=pk)
         actor = request.user
 
-        # Root nunca pode ser excluído
-        if target.is_superuser:
+        # Apenas root pode excluir root
+        if target.is_superuser and not actor.is_superuser:
             return Response(
-                {"detail": "Usuário root não pode ser excluído"},
+                {"detail": "Apenas o root pode excluir este usuário"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
         # Admin não exclui admin
-        if actor.is_staff and target.is_staff:
+        if (
+            actor.is_staff
+            and not actor.is_superuser
+            and target.is_staff
+        ):
             return Response(
                 {"detail": "Administrador não pode excluir outro administrador"},
                 status=status.HTTP_403_FORBIDDEN
@@ -325,7 +346,6 @@ class UserDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # ✅ Se chegou aqui:
         # - root pode excluir admin/user
         # - admin pode excluir user comum
         try:

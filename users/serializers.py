@@ -36,12 +36,22 @@ class UserCreateSerializer(serializers.ModelSerializer):
     
     password = serializers.CharField(write_only=True)
     
+    
+    is_staff = serializers.BooleanField(required=False, default=False)
+    is_superuser = serializers.BooleanField(required=False, default=False)
+    
     class Meta:
         """
         Metadados do serializer UserCreateSerializer.
         """
         model = User
-        fields = ["username", "email", "password"]
+        fields = [
+            "username",
+            "email",
+            "password",
+            "is_staff",
+            "is_superuser",
+        ]
         
     def create(self, validated_data):
         """
@@ -61,11 +71,27 @@ class UserCreateSerializer(serializers.ModelSerializer):
         User
             Instância do usuário criado.
         """
+        password = validated_data.pop("password")
+        is_staff = validated_data.pop("is_staff", False)
+        is_superuser = validated_data.pop("is_superuser", False)
+
+        # 🔐 Criação correta conforme o tipo
+        if is_superuser:
+            user = User.objects.create_superuser(
+                password=password,
+                **validated_data
+            )
+            return user
+
         user = User.objects.create_user(
-            username= validated_data["username"],
-            email = validated_data.get("email", ""),
-            password = validated_data["password"]
+            password=password,
+            **validated_data
         )
+
+        if is_staff:
+            user.is_staff = True
+            user.save()
+
         return user
 
 class UserUpdateSerializer(serializers.ModelSerializer):
