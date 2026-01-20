@@ -53,7 +53,7 @@ class UserView(APIView):
             serializer = UserSerializer(users, many=True)
             
             report_log(
-                    user=request.user if request.user.is_authenticated else None,
+                    user=request.user,
                     action="Listar Usuários",
                     status="INFO",
                     message=f"{users.count()} usuários retornados"
@@ -65,7 +65,7 @@ class UserView(APIView):
 
         except Exception as e:
             report_log(
-                user=request.user if request.user.is_authenticated else None,
+                user=request.user,
                 action="Listar Usuários",
                 status="ERROR",
                 message=f"Erro inesperado ao listar usuários: {str(e)}"
@@ -95,6 +95,12 @@ class UserView(APIView):
             - 400 Bad Request: Dados inválidos
             - 500 Internal Server Error: Erro inesperado
         """
+        if not request.user.is_staff:
+            return Response(
+                {"detail": "Você não tem permissão para criar usuários"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         try:
             serializer = UserCreateSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -167,7 +173,7 @@ class UserDetailView(APIView):
             user = get_object_or_404(User, pk=pk)
             
             report_log(
-                user=request.user if request.user.is_authenticated else None,
+                user=request.user,
                 action="Consultar Usuário",
                 status="INFO",
                 message=f"Usuário {pk} consultado com sucesso"
@@ -179,7 +185,7 @@ class UserDetailView(APIView):
             
         except Exception as e:
             report_log(
-                user=request.user if request.user.is_authenticated else None,
+                user=request.user,
                 action="Consultar Usuário",
                 status="ERROR",
                 message=f"Erro ao consultar usuário {pk}: {str(e)}"
@@ -209,11 +215,36 @@ class UserDetailView(APIView):
             - 200 OK: Usuário atualizado
             - 400 Bad Request: Dados inválidos
         """
-        try:
-            user = get_object_or_404(User, pk=pk)
+        target = get_object_or_404(User, pk=pk)
+        actor = request.user
 
+        # Root nunca pode ser editado
+        if target.is_superuser:
+            return Response(
+                {"detail": "Usuário root não pode ser editado"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Admin não edita admin
+        if actor.is_staff and target.is_staff:
+            return Response(
+                {"detail": "Administrador não pode editar outro administrador"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # User comum não edita ninguém
+        if not actor.is_staff:
+            return Response(
+                {"detail": "Você não tem permissão para editar usuários"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+    
+        # - root pode editar admin/user
+        # - admin pode editar user comum
+        try:
             serializer = UserUpdateSerializer(
-                user,
+                target,
                 data=request.data,
                 partial=True
             )
@@ -221,20 +252,26 @@ class UserDetailView(APIView):
             serializer.save()
 
             report_log(
-                user=request.user,
+                user=actor,
                 action="Atualizar Usuário",
                 status="SUCCESS",
                 message=f"Usuário {pk} atualizado"
             )
 
             return Response(
-                UserSerializer(user).data,
+                UserSerializer(target).data,
                 status=status.HTTP_200_OK
             )
-        
+
+        except ValidationError as exc:
+            return Response(
+                exc.detail,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         except Exception as e:
             report_log(
-                user=request.user if request.user.is_authenticated else None,
+                user=actor,
                 action="Atualizar Usuário",
                 status="ERROR",
                 message=f"Erro ao atualizar usuário: {str(e)}"
@@ -264,29 +301,38 @@ class UserDetailView(APIView):
             - 409 Conflict: Usuário possui vínculos
             - 500 Internal Server Error: Erro inesperado
         """
-        user = get_object_or_404(User, pk=pk)
-        
-        try:    
-            user.delete()
+        target = get_object_or_404(User, pk=pk)
+        actor = request.user
 
-            report_log(
-                user=request.user,
-                action="Excluir Usuário",
-                status="SUCCESS",
-                message=f"Usuário {pk} excluído"
-            )
-
+        # Root nunca pode ser excluído
+        if target.is_superuser:
             return Response(
-                status=status.HTTP_204_NO_CONTENT
+                {"detail": "Usuário root não pode ser excluído"},
+                status=status.HTTP_403_FORBIDDEN
             )
-        
+
+        # Admin não exclui admin
+        if actor.is_staff and target.is_staff:
+            return Response(
+                {"detail": "Administrador não pode excluir outro administrador"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # User comum não exclui ninguém
+        if not actor.is_staff:
+            return Response(
+                {"detail": "Você não tem permissão para excluir usuários"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # ✅ Se chegou aqui:
+        # - root pode excluir admin/user
+        # - admin pode excluir user comum
+        try:
+            target.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
         except IntegrityError:
-            report_log(
-                user=request.user,
-                action="Excluir Usuário",
-                status="WARNING",
-                message=f"Usuário {pk} possui vínculos e não pode ser excluído"
-            )
             return Response(
                 {"detail": "Usuário possui registros vinculados"},
                 status=status.HTTP_409_CONFLICT
@@ -294,7 +340,7 @@ class UserDetailView(APIView):
         
         except Exception as e:
             report_log(
-                user=request.user if request.user.is_authenticated else None,
+                user=request.user,
                 action="Excluir Usuário",
                 status="ERROR",
                 message=f"Erro ao excluir usuário: {str(e)}"

@@ -2,11 +2,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema
-from .serializers import LoginSerializer, LogoutSerializer, RenovateTokenSerializer
+
+from .serializers import (
+    LoginSerializer,
+    LogoutSerializer,
+    RenovateTokenSerializer
+)
 
 from core.utils import report_log
  
@@ -29,6 +35,9 @@ class LoginView(APIView):
     Esta view recebe credenciais válidas e retorna um par de tokens
     (access e renovate), delegando a autenticação ao backend do Django.
     """  
+    
+    permission_classes = [AllowAny]
+    
     def post(self, request: Request) -> Response:
         """
         Processa a autenticação do usuário.
@@ -92,6 +101,8 @@ class RenovateTokenView(APIView):
     View responsável por gerar um novo access token a partir
     de um renovate token válido.
     """
+    permission_classes = [AllowAny]
+    
     def post(self, request: Request) -> Response:
         """
         Realiza a renovação do access token.
@@ -135,6 +146,9 @@ class LogoutView(APIView):
     Executa a invalidação do renovate token informado,
     impedindo novas renovações de access token.
     """
+    
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request: Request) -> Response:
         """
         Processa o logout do usuário.
