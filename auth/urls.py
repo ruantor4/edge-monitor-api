@@ -40,7 +40,7 @@ urlpatterns = [
 
     # POST /api/authentication/password-reset/confirm/
     path(
-        "password-reset-confirm/",
+        "password-reset/confirm/",
         PasswordResetConfirmView.as_view(),
         name="password-reset-confirm",
     ),
