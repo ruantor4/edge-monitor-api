@@ -81,6 +81,7 @@ class LoginView(APIView):
             {
                 "access": str(renovate.access_token),
                 "renovate": str(renovate),
+                "id": user.id,
                 "is_staff": user.is_staff,
                 "is_superuser": user.is_superuser,
             },

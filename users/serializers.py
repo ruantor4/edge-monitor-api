@@ -17,7 +17,13 @@ class UserSerializer(serializers.ModelSerializer):
         relacionadas a usuários.
         """
         model = User
-        fields = ["id", "username", "email"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "is_staff",
+            "is_superuser",
+        ]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -52,36 +58,49 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_superuser",
         ]
-        
+     
+    def validate(self, attrs):
+        """
+        Valida permissões para criação de usuários.
+
+        Responsabilidades:
+        - Impedir criação por usuário comum
+        - Impedir administrador de criar superusuário
+        """
+        request = self.context.get("request")
+        actor = request.user if request else None
+
+        # Usuário comum não cria ninguém
+        if not actor or not actor.is_staff:
+            raise serializers.ValidationError(
+                "Você não tem permissão para criar usuários"
+            )
+            
+        # Admin não pode criar superuser
+        if (
+            actor.is_staff
+            and not actor.is_superuser
+            and attrs.get("is_superuser") is True
+        ):
+            raise serializers.ValidationError(
+                "Administrador não pode criar superusuário"
+            )
+
+        return attrs
+
     def create(self, validated_data):
         """
         Cria e retorna uma nova instância de usuário.
-
-        Este método garante o uso de `create_user`, assegurando
-        que a senha seja tratada corretamente pelo sistema
-        de autenticação do Django.
-
-        Parameters
-        ----------
-        validated_data : dict
-            Dados validados da requisição.
-
-        Returns
-        -------
-        User
-            Instância do usuário criado.
         """
         password = validated_data.pop("password")
         is_staff = validated_data.pop("is_staff", False)
         is_superuser = validated_data.pop("is_superuser", False)
 
-        # 🔐 Criação correta conforme o tipo
         if is_superuser:
-            user = User.objects.create_superuser(
+            return User.objects.create_superuser(
                 password=password,
                 **validated_data
             )
-            return user
 
         user = User.objects.create_user(
             password=password,
@@ -93,6 +112,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             user.save()
 
         return user
+
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """
@@ -107,17 +127,49 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         - email (opcional)
         - password (opcional)
     """
-    
     password = serializers.CharField(
         write_only=True,
         required=False
     )
+    
+    is_staff = serializers.BooleanField(required=False)
+    is_superuser = serializers.BooleanField(required=False)
+    
     class Meta:
         """
         Metadados do serializer UserUpdateSerializer.
         """
         model = User
-        fields = ["username", "email", "password"]
+        fields = [
+            "username",
+            "email",
+            "password",
+            "is_staff",
+            "is_superuser",
+        ]
+    
+    def validate(self, attrs):
+        request = self.context.get("request")
+        actor = request.user if request else None
+        instance = self.instance
+
+        # Alteração de superuser
+        if "is_superuser" in attrs:
+            if attrs["is_superuser"] != instance.is_superuser:
+                if not actor or not actor.is_superuser:
+                    raise serializers.ValidationError(
+                        "Você não tem permissão para alterar superusuário"
+                    )
+
+        # Alteração de staff
+        if "is_staff" in attrs:
+            if attrs["is_staff"] != instance.is_staff:
+                if not actor or not actor.is_staff:
+                    raise serializers.ValidationError(
+                        "Você não tem permissão para alterar administrador"
+                    )
+
+        return attrs
         
     def update(self, instance, validated_data):
         """
@@ -141,14 +193,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             Instância do usuário atualizada.
         """
         password = validated_data.pop("password", None)
-        
-        # Atualiza campos simples
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        
-        # Atualiza a senha, se informada   
+
         if password:
             instance.set_password(password)
-            
+
         instance.save()
         return instance

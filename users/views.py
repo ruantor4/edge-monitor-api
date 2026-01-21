@@ -115,7 +115,10 @@ class UserView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         try:
-            serializer = UserCreateSerializer(data=request.data)
+            serializer = UserCreateSerializer(
+            data=request.data,
+            context={"request": request}
+        )
             serializer.is_valid(raise_exception=True)
 
             user = serializer.save()
@@ -231,40 +234,34 @@ class UserDetailView(APIView):
         actor = request.user
         target = get_object_or_404(User, pk=pk)
 
-        # Apenas root pode editar root
-        if target.is_superuser and not actor.is_superuser:
-            return Response(
-                {"detail": "Apenas o root pode editar este usuário"},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # Superuser pode editar tudo
+        if actor.is_superuser:
+            pass
 
-        # Admin não edita admin
-        if (
-            actor.is_staff
-            and not actor.is_superuser
-            and target.is_staff
-        ):
-            return Response(
-                {"detail": "Administrador não pode editar outro administrador"},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # Admin (staff)
+        elif actor.is_staff:
+            if target.is_superuser:
+                return Response(
+                    {"detail": "Administrador não pode editar superusuário"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-        # User comum não edita ninguém
-        if not actor.is_staff:
-            return Response(
-                {"detail": "Você não tem permissão para editar usuários"},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # Usuário comum
+        else:
+            if target.id != actor.id:
+                return Response(
+                    {"detail": "Você só pode editar o próprio usuário"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-    
-        # - root pode editar admin/user
-        # - admin pode editar user comum
         try:
             serializer = UserUpdateSerializer(
                 target,
                 data=request.data,
-                partial=True
+                partial=True,
+                context={"request": request}
             )
+            
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
@@ -318,36 +315,30 @@ class UserDetailView(APIView):
             - 409 Conflict: Usuário possui vínculos
             - 500 Internal Server Error: Erro inesperado
         """
-        target = get_object_or_404(User, pk=pk)
         actor = request.user
+        target = get_object_or_404(User, pk=pk)
 
-        # Apenas root pode excluir root
-        if target.is_superuser and not actor.is_superuser:
+        # Superuser nunca pode ser excluído
+        if target.is_superuser:
             return Response(
-                {"detail": "Apenas o root pode excluir este usuário"},
+                {"detail": "Usuário root não pode ser excluído"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Admin não exclui admin
-        if (
-            actor.is_staff
-            and not actor.is_superuser
-            and target.is_staff
-        ):
-            return Response(
-                {"detail": "Administrador não pode excluir outro administrador"},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # Superuser pode excluir qualquer outro
+        if actor.is_superuser:
+            pass
 
-        # User comum não exclui ninguém
-        if not actor.is_staff:
+        # Admin
+        elif actor.is_staff:
+            pass  # pode excluir user comum e admin
+
+        # Usuário comum
+        else:
             return Response(
                 {"detail": "Você não tem permissão para excluir usuários"},
                 status=status.HTTP_403_FORBIDDEN
             )
-
-        # - root pode excluir admin/user
-        # - admin pode excluir user comum
         try:
             target.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
