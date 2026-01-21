@@ -26,7 +26,7 @@ class MonitoringCreateView(APIView):
     
     @extend_schema(
         responses={200: MonitoringEventSerializer(many=True)},
-        description="Lista eventos de monitoramento registrados."
+        description="Lista eventos de monitoramento (uso interno / dashboard)."
     )
     def get(self, request: Request) -> Response:
         """
@@ -99,7 +99,7 @@ class MonitoringCreateView(APIView):
         
         except Exception as exc:
             report_log(
-                user=request.user if request.user.is_authenticated else None,
+                user=request.user,
                 action="Criar Evento de Monitoramento",
                 status="ERROR",
                 message=f"Erro inesperado ao criar evento: {str(exc)}"

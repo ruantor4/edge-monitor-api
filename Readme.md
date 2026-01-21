@@ -4,36 +4,40 @@ Backend desenvolvido em **[Python 3.11](https://docs.python.org/pt-br/3.11/conte
 
 Este projeto de **monitoramento de risco em ambientes industriais**, integra-se diretamente ao projeto **Edge Risk Monitor**, responsável pela inferência local com **Visão Computacional**.
 
-A API recebe eventos estruturados e evidências visuais, aplica regras de autenticação, mantém histórico auditável e disponibiliza dados consolidados para dashboards.
+A API recebe eventos estruturados e evidências visuais, aplica autenticação segura baseada em JWT, mantém histórico auditável e disponibiliza dados consolidados para dashboards.
 
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 ## Objetivos do Projeto
 
-- Centralizar a ingestão de eventos de monitoramento enviados por dispositivos edge
+- Centralizar a ingestão de eventos enviados por dispositivos edge
 - Persistir evidências visuais associadas às detecções
 - Implementar autenticação segura baseada em JWT
+- Disponibilizar fluxo completo de recuperação de senha por e-mail
 - Garantir rastreabilidade completa por meio de logs de auditoria
 - Disponibilizar dados para visualização analítica (dashboard)
 - Documentar a API utilizando OpenAPI / Swagger
 - Manter código organizado, legível e aderente a padrões profissionais
 
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 ## Funcionalidades
 
 | Categoria | Descrição |
 |----------|-----------|
-| **Autenticação JWT** | Autenticação segura baseada em tokens, com suporte a login, renovação e logout |
-| **Gestão de Usuários** | Criação, listagem, consulta, atualização e exclusão de usuários do sistema |
-| **Ingestão de Eventos de Monitoramento** | Recebimento de eventos estruturados enviados por dispositivos edge |
-| **Persistência de Evidências** | Armazenamento de evidências visuais associadas aos eventos de detecção |
-| **Dashboard Analítico** | Consulta e visualização de eventos filtrados por intervalo de datas |
-| **Auditoria e Rastreabilidade** | Registro estruturado de ações, operações e eventos do sistema |
-| **Integração com Sistemas Edge** | Backend preparado para integração direta com aplicações de inferência em borda |
+| **Autenticação JWT** | Login, renovação de token e logout |
+| **Recuperação de Senha** | Solicitação de redefinição via e-mail |
+| **Redefinição de Senha** | Atualização segura usando UID + token |
+| **Gestão de Usuários** | Criação, listagem, edição e exclusão |
+| **Ingestão de Eventos Edge** | Recebimento de eventos estruturados |
+| **Persistência de Evidências** | Armazenamento de imagens associadas |
+| **Dashboard Analítico** | Consulta e filtros por período |
+| **Auditoria** | Registro de ações e eventos críticos |
+| **Integração Frontend** | API preparada para consumo web |
 
+---
 
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+## Tecnologias Utilizadas
 
 ## Tecnologias Utilizadas
 
@@ -43,10 +47,11 @@ A API recebe eventos estruturados e evidências visuais, aplica regras de autent
 | **Framework Web** | **[Django 5.2](https://docs.djangoproject.com/en/5.2/)** |
 | **API REST** | **[Django REST Framework](https://www.django-rest-framework.org/)** |
 | **Autenticação** | **[SimpleJWT](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/)** |
-| **Documentação API** | **[drf-spectacular](https://drf-spectacular.readthedocs.io/)** |
+| **Documentação** | **[drf-spectacular](https://drf-spectacular.readthedocs.io/)** |
 | **Banco de Dados** | **[PostgreSQL](https://www.postgresql.org/docs/)** |
-| **Uploads de Arquivos** | **[Django Media Files](https://docs.djangoproject.com/en/5.2/topics/files/)** |
+| **E-mail (SMTP)** | **[Django Email](https://docs.djangoproject.com/en/5.2/topics/email/)** |
 | **Configuração** | **[python-decouple](https://github.com/HBNetwork/python-decouple)**, **[python-dotenv](https://pypi.org/project/python-dotenv/)** |
+| **CORS** | **[django-cors-headers](https://github.com/adamchainz/django-cors-headers)** |
 
 **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
@@ -54,7 +59,7 @@ A API recebe eventos estruturados e evidências visuais, aplica regras de autent
 
 ```bash
 edge-monitor-api/
-├── auth/                             # Autenticação e tokens JWT
+├── auth/                             # Autenticação e segurança
 │   ├── serializers.py
 │   ├── views.py
 │   └── urls.py
@@ -75,7 +80,7 @@ edge-monitor-api/
 │   ├── views.py
 │   └── urls.py
 │
-├── core/                             # Infraestrutura e auditoria
+├── core/                            # Infraestrutura e auditoria
 │   ├── models.py                    # LogSystem
 │   └── utils.py                     # Função report_log
 │
@@ -90,8 +95,7 @@ edge-monitor-api/
 ├── .env                             # Variáveis de ambiente
 └── README.md
 ```
-
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 ## Instalação e Execução
 
@@ -154,7 +158,7 @@ $ python manage.py createsuperuser
 $ python manage.py runserver
 ``` 
 
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 ## Documentação da API (Swagger)
 
@@ -168,31 +172,33 @@ A documentação OpenAPI é gerada automaticamente.
 ```bash
     http://127.0.0.1:8000/api/schema/
 ```
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 ## Auditoria e Logs
 
-O sistema mantém auditoria completa de ações e eventos relevantes,
-garantindo rastreabilidade, análise histórica e suporte à investigação
-de falhas operacionais.
+- Todas as ações críticas são auditadas
+- Tokens JWT com expiração configurável
+- Recuperação de senha sem enumeração de usuários
+- Frontend nunca recebe informações sensíveis
 
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 ## Integração com o Edge Risk Monitor
 
-Este backend foi projetado para integração direta com o projeto **Edge Risk Monitor**,
-responsável pela inferência local com **YOLO** e envio apenas de eventos confirmados.
+- **Edge Risk Monitor** → inferência em borda
+- **Edge Monitor API** → persistência, auditoria e análise
+- **Edge Monitor Frontend** → interface web
 
-Essa integração permite:
-- Processamento pesado realizado na borda (edge)
-- Backend dedicado à persistência, auditoria e visualização
-- Arquitetura desacoplada, escalável e orientada a eventos
+Arquitetura desacoplada, orientada a eventos e escalável.
 
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 ## Observações Técnicas
 
-A solução segue princípios de separação de responsabilidades,
-com inferência restrita ao edge e backend focado em persistência,
-auditoria e análise, respeitando padrões REST e boas práticas
-de organização de código.
+O backend foi projetado com foco em:
+
+- Segurança
+- Clareza arquitetural
+- Auditoria
+- Escalabilidade
+- Integração industrial real

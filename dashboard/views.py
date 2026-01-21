@@ -94,7 +94,7 @@ class DashboardView(APIView):
         )
         
         report_log(
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             action="Consultar Dashboard",
             status="INFO",
             message=f"{events.count()} eventos retornados no dashboard"
