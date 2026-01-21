@@ -49,3 +49,51 @@ class LogoutSerializer(serializers.Serializer):
     renovate = serializers.CharField(
         help_text="Refresh token a ser invalidado"
     )
+    
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """
+    Serializer responsável por validar a solicitação de
+    recuperação de senha.
+
+    Este serializer define o contrato de entrada para o
+    endpoint de solicitação de reset de senha via e-mail.
+
+    Responsabilidades:
+    - Validar o formato do e-mail informado
+    - Servir como contrato explícito para a camada de view
+
+    IMPORTANTE:
+    - Não valida se o e-mail existe ou não
+    - A view é responsável por tratar esse cenário de forma segura
+    """
+    
+    email = serializers.EmailField(
+        help_text="E-mail cadastrado do usuário para recuperação de senha"
+    )
+    
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer responsável por validar a confirmação de
+    redefinição de senha.
+
+    Utilizado no endpoint que recebe o token de recuperação
+    e a nova senha definida pelo usuário.
+
+    Responsabilidades:
+    - Validar presença e formato do token
+    - Validar nova senha informada
+    - Servir como contrato explícito para a camada de view
+    """
+    uid = serializers.CharField(
+        help_text="Identificador codificado do usuário"
+    )
+    
+    token = serializers.CharField(
+        help_text="Token de recuperação de senha"
+    )
+    
+    password = serializers.CharField(
+        write_only=True,
+        min_length=6,
+        help_text="Nova senha do usuário"
+    )
